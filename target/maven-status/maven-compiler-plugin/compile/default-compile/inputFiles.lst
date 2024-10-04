@@ -1,0 +1,16 @@
+/home/catalvman/NetBeansProjects/JDBC_Practica1/src/main/java/Domain/PedidoArticulo.java
+/home/catalvman/NetBeansProjects/JDBC_Practica1/src/main/java/Domain/ArticuloFabrica.java
+/home/catalvman/NetBeansProjects/JDBC_Practica1/src/main/java/Domain/Cliente.java
+/home/catalvman/NetBeansProjects/JDBC_Practica1/src/main/java/Domain/DireccionEnvio.java
+/home/catalvman/NetBeansProjects/JDBC_Practica1/src/main/java/datos/FabricaDAO.java
+/home/catalvman/NetBeansProjects/JDBC_Practica1/src/main/java/pruebasnb/jdbc_practica1/JDBC_Practica1.java
+/home/catalvman/NetBeansProjects/JDBC_Practica1/src/main/java/Domain/Fabrica.java
+/home/catalvman/NetBeansProjects/JDBC_Practica1/src/main/java/datos/DireccionEnvioDAO.java
+/home/catalvman/NetBeansProjects/JDBC_Practica1/src/main/java/datos/PedidoDAO.java
+/home/catalvman/NetBeansProjects/JDBC_Practica1/src/main/java/Domain/Articulo.java
+/home/catalvman/NetBeansProjects/JDBC_Practica1/src/main/java/datos/ClienteDAO.java
+/home/catalvman/NetBeansProjects/JDBC_Practica1/src/main/java/datos/ArticuloFabricaDAO.java
+/home/catalvman/NetBeansProjects/JDBC_Practica1/src/main/java/datos/PedidoArticuloDAO.java
+/home/catalvman/NetBeansProjects/JDBC_Practica1/src/main/java/Domain/Pedido.java
+/home/catalvman/NetBeansProjects/JDBC_Practica1/src/main/java/datos/Conexion.java
+/home/catalvman/NetBeansProjects/JDBC_Practica1/src/main/java/datos/ArticuloDAO.java
