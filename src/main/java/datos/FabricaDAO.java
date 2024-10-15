@@ -102,5 +102,10 @@ public class FabricaDAO {
         }
         return rowUpdated;
     }
+
+    public void totalComandasClientes() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'totalComandasClientes'");
+    }
 }
 

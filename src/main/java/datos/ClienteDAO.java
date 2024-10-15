@@ -5,6 +5,8 @@
 package datos;
 
 import Domain.Cliente;
+import Domain.Pedido;
+
 import static datos.Conexion.close;
 import static datos.Conexion.getConnection;
 import java.sql.*;
@@ -17,6 +19,7 @@ import java.util.List;
  */
 public class ClienteDAO {
     private static final String SQL_SELECT = "SELECT idCliente, saldo, limiteCredito, descuento FROM Cliente";
+    private static final String SQL_SELECT_BY_ID = "SELECT idCliente, descuento FROM Cliente WHERE idCliente = ?";
     private static final String SQL_INSERT = "INSERT INTO Cliente (idCliente, saldo, limiteCredito, descuento) VALUES (?,?,?,?)";
     private static final String SQL_UPDATE = "UPDATE Cliente SET saldo = ?, limiteCredito = ?, descuento = ? WHERE idCliente = ?";
     private static final String SQL_DELETE = "DELETE FROM Cliente WHERE idCliente = ?";
@@ -50,6 +53,36 @@ public class ClienteDAO {
         return clientes;
     }
     
+    public Cliente obtenerClientePorId(int idCliente) throws SQLException {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        Cliente cliente = null;
+
+        try {
+            conn = getConnection();
+            stmt = conn.prepareStatement(SQL_SELECT_BY_ID);
+            stmt.setInt(1, idCliente);  
+
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                int id = rs.getInt("idCliente");
+                double descuento = rs.getDouble("descuento");
+
+                cliente = new Cliente(id,descuento);
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        } 
+        finally {
+            Conexion.close(rs);
+            Conexion.close(stmt);
+            Conexion.close(conn);
+        }
+        return cliente;
+    }
+
     public int insertar(Cliente cliente){
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -68,11 +101,11 @@ public class ClienteDAO {
             }
         finally{
             try{
-                close(stmt);
+                Conexion.close(stmt);
             }catch(SQLException ex){
             }
             try{
-                close(conn);
+                Conexion.close(conn);
             }catch(SQLException ex){
                 ex.printStackTrace(System.out);
             }
@@ -122,4 +155,27 @@ public class ClienteDAO {
         }
         return rowUpdated;
     }
+
+    public void totalPedidosClientes(int idCliente) throws SQLException {
+        Cliente cliente = obtenerClientePorId(idCliente);
+        if (idCliente == 0) {
+            System.out.printf("El ID %d no es válido",idCliente);
+        }
+        List<Pedido> pedidos = PedidoDAO.obtenerPedidosPorCliente(idCliente);
+        if (pedidos.isEmpty()) {
+            System.out.println("El cliente no tiene pedidos");
+            return;
+        }
+
+        double totalDescuentos = 0;
+        for (int i = 0; i < pedidos.size(); i++) {
+            Pedido pedido = pedidos.get(i);
+            System.out.println("Pedido ID: " + pedido.getIdPedido() + ", Numero: " + pedido.getNumero());
+            double descuentoPorPedido = pedido.getNumero() * (cliente.getDescuento() / 100);
+            totalDescuentos += descuentoPorPedido;
+
+        }
+        System.out.println("Total ahorrado con los descuentos  " + totalDescuentos);
+    }
+
 }

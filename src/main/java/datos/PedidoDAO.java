@@ -109,5 +109,9 @@ public class PedidoDAO {
         }
         return rowUpdated;
     }
+
+    public static List<Pedido> obtenerPedidosPorCliente(int idCliente) throws SQLException {
+       
+    }    
 }
 

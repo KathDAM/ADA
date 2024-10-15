@@ -25,6 +25,7 @@ public class JDBC_Practica1 {
     private static PedidoDAO pedidoDAO = new PedidoDAO();
     private static ArticuloDAO articuloDAO = new ArticuloDAO();
     private static FabricaDAO fabricaDAO = new FabricaDAO();
+    private static PedidoArticuloDAO pedidoArticuloDAO = new PedidoArticuloDAO();
    
 
     private enum MenuGeneral {
@@ -32,7 +33,7 @@ public class JDBC_Practica1 {
     };
 
     private enum MenuCliente {
-        MOSTRAR_INFORMACION_CLIENTE, AGREGAR_CLIENTE, ELIMINAR_CLIENTE, ACTUALIZAR_CLIENTE, SALIR_CLIENTE
+        MOSTRAR_INFORMACION_CLIENTE, AGREGAR_CLIENTE, ELIMINAR_CLIENTE, ACTUALIZAR_CLIENTE,LISTADO_PEDIDOS, SALIR_CLIENTE
     };
 
     private enum MenuPedido {
@@ -40,7 +41,7 @@ public class JDBC_Practica1 {
     };
 
     private enum MenuArticulo {
-        MOSTRAR_INFORMACION_ARTICULO, AGREGAR_ARTICULO, ELIMINAR_ARTICULO, ACTUALIZAR_ARTICULO, SALIR_ARTICULO
+        MOSTRAR_INFORMACION_ARTICULO, AGREGAR_ARTICULO, ELIMINAR_ARTICULO, ACTUALIZAR_ARTICULO, ARTICULOS_POR_ANYO, SALIR_ARTICULO
     };
 
     private enum MenuFabrica {
@@ -105,6 +106,8 @@ public class JDBC_Practica1 {
                 case ACTUALIZAR_CLIENTE:
                     actualizarCliente();
                     break;
+                case LISTADO_PEDIDOS:
+                    listadoPedidos();
                 case SALIR_CLIENTE:
                     System.out.println("Saliendo del menú de cliente...");
                     break;
@@ -155,6 +158,15 @@ public class JDBC_Practica1 {
         clienteDAO.actualizar(cliente);
         System.out.println("Cliente actualizado correctamente.");
     }
+
+    private static void listadoPedidos() throws SQLException {
+        System.out.println("Dime el ID del cliente para la consulta de pedidos: ");
+        int idCliente = Integer.parseInt(lect.nextLine());
+
+        System.out.println("Lista de todos los pedidos y total descuento: \n");
+        clienteDAO.totalPedidosClientes(idCliente);
+    }
+
 
 /************************************************************************************************/
 // PEDIDO
@@ -226,6 +238,7 @@ public class JDBC_Practica1 {
         System.out.println("Pedido actualizado correctamente.");
     }
 
+
 /************************************************************************************************/
 // ARTICULO
     private static void gestionarArticulos() throws SQLException {
@@ -246,6 +259,9 @@ public class JDBC_Practica1 {
                     break;
                 case ACTUALIZAR_ARTICULO:
                     actualizarArticulo();
+                    break;
+                case ARTICULOS_POR_ANYO:
+                    totalArticulosIncluidosComandas();
                     break;
                 case SALIR_ARTICULO:
                     System.out.println("Saliendo del menú de artículo...");
@@ -289,6 +305,15 @@ public class JDBC_Practica1 {
         articuloDAO.actualizar(articulo);
         System.out.println("Artículo actualizado correctamente.");
     }
+
+    private static void totalArticulosIncluidosComandas() throws SQLException {
+        System.out.println("Dime el año que quieres ver: ");
+        int anyo = Integer.parseInt(lect.nextLine());
+        System.out.println("Lista del total de articulos incluidos en el año dado: \n");
+        pedidoArticuloDAO.obtenerTotalArticulosPorAnyo(anyo);
+    }
+
+
 /************************************************************************************************/
 //FABRICA
 private static void gestionarFabricas() throws SQLException {
@@ -356,6 +381,12 @@ private static void actualizarFabrica() throws SQLException {
     fabricaDAO.actualizar(fabrica);
     System.out.println("Fábrica actualizada correctamente.");
 }
+
+private static void borrarFabricasNoConsultadasArticulos() {
+    System.out.println("Listado de fabricas actuales utilizadas: \n");
+    fabricaDAO.totalComandasClientes();
+}
+
 
 /************************************************************************************************/
 
@@ -430,20 +461,21 @@ private static void actualizarFabrica() throws SQLException {
 
     private static void imprimirMenuCliente() {
         StringBuilder sb = new StringBuilder()
-                .append("\n\n¡BIENVENIDO AL MENÚ!:")
+                .append("\n\n¡BIENVENIDO AL MENÚ DEL CLIENTE!:")
                 .append("\n\nElije una opción:\n")
                 .append("\t1) Mostrar información del cliente\n")
                 .append("\t2) Agregar cliente\n")
                 .append("\t3) Eliminar cliente\n")
                 .append("\t4) Actualizar cliente\n")
-                .append("\t5) Salir del menú de clientes\n")
+                .append("\t5) Listado Pedidos del cliente\n")
+                .append("\t6) Salir del menú de clientes\n")
                 .append("\nOpción: ");
         System.out.print(sb.toString());
     }
 
     private static void imprimirMenuPedido() {
         StringBuilder sb = new StringBuilder()
-                .append("\n\n¡BIENVENIDO AL MENÚ!:")
+                .append("\n\n¡BIENVENIDO AL MENÚ DE PEDIDOS!:")
                 .append("\n\nElije una opción:\n")
                 .append("\t1) Mostrar información del pedido\n")
                 .append("\t2) Agregar pedido\n")
@@ -456,20 +488,21 @@ private static void actualizarFabrica() throws SQLException {
 
     private static void imprimirMenuArticulo() {
         StringBuilder sb = new StringBuilder()
-                .append("\n\n¡BIENVENIDO AL MENÚ!:")
+                .append("\n\n¡BIENVENIDO AL MENÚ DE ARTICULOS!:")
                 .append("\n\nElije una opción:\n")
                 .append("\t1) Mostrar información del articulo\n")
                 .append("\t2) Agregar articulo\n")
                 .append("\t3) Eliminar articulo\n")
                 .append("\t4) Actualizar articulo\n")
-                .append("\t5) Salir del menú de articulos\n")
+                .append("\t5) Mostrar articulos por año\n")
+                .append("\t6) Salir del menú de articulos\n")
                 .append("\nOpción: ");
         System.out.print(sb.toString());
     }
 
     private static void imprimirMenuFabrica() {
         StringBuilder sb = new StringBuilder()
-                .append("\n\n¡BIENVENIDO AL MENÚ!:")
+                .append("\n\n¡BIENVENIDO AL MENÚ DE LA FABRICA!:")
                 .append("\n\nElije una opción:\n")
                 .append("\t1) Mostrar información de la fábrica\n")
                 .append("\t2) Agregar en la fábrica\n")

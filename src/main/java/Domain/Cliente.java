@@ -23,6 +23,12 @@ public class Cliente {
         this.descuento = descuento;
     }
 
+    public Cliente(int idCliente, double descuento) {
+        this.idCliente = idCliente;
+        this.descuento = descuento;
+    }
+
+
     //GETTER Y SETTER
     public int getIdCliente() {
         return idCliente;
