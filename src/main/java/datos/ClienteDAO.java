@@ -5,9 +5,6 @@
 package datos;
 
 import Domain.Cliente;
-import Domain.Pedido;
-
-import static datos.Conexion.close;
 import static datos.Conexion.getConnection;
 import java.sql.*;
 import java.util.ArrayList;
@@ -23,7 +20,8 @@ public class ClienteDAO {
     private static final String SQL_INSERT = "INSERT INTO Cliente (idCliente, saldo, limiteCredito, descuento) VALUES (?,?,?,?)";
     private static final String SQL_UPDATE = "UPDATE Cliente SET saldo = ?, limiteCredito = ?, descuento = ? WHERE idCliente = ?";
     private static final String SQL_DELETE = "DELETE FROM Cliente WHERE idCliente = ?";
-
+    private static final String SQL_TOTAL_DESCUENTOS = "SELECT P.numero, C.descuento FROM Pedido P JOIN Cliente C ON P.idCliente = C.idCliente WHERE C.idCliente = ?";
+   
     public List<Cliente> seleccionar() throws SQLException{
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -67,10 +65,10 @@ public class ClienteDAO {
             rs = stmt.executeQuery();
 
             if (rs.next()) {
-                int id = rs.getInt("idCliente");
+                double saldo = rs.getDouble("saldo");
+                double limiteCredito = rs.getDouble("limiteCredito");
                 double descuento = rs.getDouble("descuento");
-
-                cliente = new Cliente(id,descuento);
+                cliente = new Cliente(idCliente, saldo, limiteCredito, descuento);
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -156,26 +154,40 @@ public class ClienteDAO {
         return rowUpdated;
     }
 
-    public void totalPedidosClientes(int idCliente) throws SQLException {
-        Cliente cliente = obtenerClientePorId(idCliente);
-        if (idCliente == 0) {
-            System.out.printf("El ID %d no es válido",idCliente);
-        }
-        List<Pedido> pedidos = PedidoDAO.obtenerPedidosPorCliente(idCliente);
-        if (pedidos.isEmpty()) {
-            System.out.println("El cliente no tiene pedidos");
-            return;
-        }
-
+    public double calcularTotalDescuentos(int idCliente) throws SQLException {
         double totalDescuentos = 0;
-        for (int i = 0; i < pedidos.size(); i++) {
-            Pedido pedido = pedidos.get(i);
-            System.out.println("Pedido ID: " + pedido.getIdPedido() + ", Numero: " + pedido.getNumero());
-            double descuentoPorPedido = pedido.getNumero() * (cliente.getDescuento() / 100);
-            totalDescuentos += descuentoPorPedido;
-
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+    
+        try {
+            conn = Conexion.getConnection();
+            stmt = conn.prepareStatement(SQL_TOTAL_DESCUENTOS);
+            stmt.setInt(1, idCliente);
+            rs = stmt.executeQuery();
+    
+            while (rs.next()) {
+                int numero = rs.getInt("numero");
+                double descuento = rs.getDouble("descuento");
+                totalDescuentos += numero * (descuento / 100);
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.out);
+        } finally {
+            Conexion.close(rs);
+            Conexion.close(stmt);
+            Conexion.close(conn);
         }
-        System.out.println("Total ahorrado con los descuentos  " + totalDescuentos);
+        return totalDescuentos;
+    }
+
+    public double totalPedidosClientes(int idCliente) throws SQLException {
+        if (obtenerClientePorId(idCliente) == null) {
+            System.out.printf("El cliente no existe");
+        }
+
+        double totalDescuentos = calcularTotalDescuentos(idCliente);
+        return totalDescuentos;
     }
 
 }

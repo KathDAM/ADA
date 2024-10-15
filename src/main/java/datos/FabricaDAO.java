@@ -16,6 +16,7 @@ public class FabricaDAO {
     private static final String SQL_INSERT = "INSERT INTO Fabrica (idFabrica, telefono, totalArticulos) VALUES (?,?,?)";
     private static final String SQL_UPDATE = "UPDATE Pedido SET telefono = ?, totalArticulos = ? WHERE idFabrica = ?";
     private static final String SQL_DELETE = "DELETE FROM Fabrica WHERE idFabrica = ?";
+    private static final String SQL_DELETE_FABRICAS_SIN_COMANDAS = "DELETE FROM Fabrica WHERE idFabrica NOT IN (SELECT DISTINCT AF.idFabrica FROM ArticuloFabrica AF JOIN PedidoArticulo PA ON AF.idArticulo = PA.idArticulo)";
 
     public List<Fabrica> seleccionar() throws SQLException {
         Connection conn = null;
@@ -103,9 +104,22 @@ public class FabricaDAO {
         return rowUpdated;
     }
 
-    public void totalComandasClientes() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'totalComandasClientes'");
+    public void eliminarFabricasQueNoTienenPedidos() throws SQLException {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try {
+            conn = Conexion.getConnection();
+
+            stmt = conn.prepareStatement(SQL_DELETE_FABRICAS_SIN_COMANDAS);
+            int filesEsborrades = stmt.executeUpdate();
+
+            System.out.println("Se han eliminado " + filesEsborrades + " fabricas sin pedidos asociados.");
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.out);
+        } finally {
+            Conexion.close(stmt);
+            Conexion.close(conn);
+        }
     }
 }
 

@@ -18,6 +18,8 @@ public class PedidoDAO {
     private static final String SQL_INSERT = "INSERT INTO Pedido (fecha, numero, numDireccion, idCliente) VALUES (?,?,?,?)";
     private static final String SQL_UPDATE = "UPDATE Pedido SET fecha = ?, numero = ?, numDireccion = ?, idCliente = ? WHERE idPedido = ?";
     private static final String SQL_DELETE = "DELETE FROM Pedido WHERE idPedido = ?";
+    private static final String SQL_SELECT_BY_YEAR = "SELECT idPedido FROM Pedido WHERE YEAR(fecha) = ?";
+    private static final String SQL_SELECT_ARTICLES_BY_PEDIDO = "SELECT cantidad FROM PedidoArticulo WHERE idPedido = ?";
 
     public List<Pedido> seleccionar() throws SQLException {
         Connection conn = null;
@@ -109,9 +111,47 @@ public class PedidoDAO {
         }
         return rowUpdated;
     }
+      
 
-    public static List<Pedido> obtenerPedidosPorCliente(int idCliente) throws SQLException {
-       
-    }    
-}
+    public int calcularTotalArticulosPorAnyo(int any) throws SQLException {
+        Connection conn = null;
+        PreparedStatement stmtPedido = null;
+        PreparedStatement stmtArticulo = null;
+        ResultSet rsPedidos = null;
+        ResultSet rsArticulos = null;
+        int totalArticles = 0;
+
+        try {
+            conn = Conexion.getConnection();
+
+            stmtPedido = conn.prepareStatement(SQL_SELECT_BY_YEAR);
+            stmtPedido.setInt(1, any);
+            rsPedidos = stmtPedido.executeQuery();
+
+            while (rsPedidos.next()) {
+                int idPedido = rsPedidos.getInt("idPedido");
+
+                stmtArticulo = conn.prepareStatement(SQL_SELECT_ARTICLES_BY_PEDIDO);
+                stmtArticulo.setInt(1, idPedido);
+                rsArticulos = stmtArticulo.executeQuery();
+
+                while (rsArticulos.next()) {
+                    totalArticles += rsArticulos.getInt("cantidad");
+                }
+
+                Conexion.close(rsArticulos);
+                Conexion.close(stmtArticulo);  
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.out);
+        } finally {
+            Conexion.close(rsPedidos);
+            Conexion.close(stmtPedido);
+            Conexion.close(conn);
+        }
+        return totalArticles;
+    }
+     
+}    
+
 

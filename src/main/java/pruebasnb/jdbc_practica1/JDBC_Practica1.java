@@ -9,10 +9,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Scanner;
 
-import Domain.Articulo;
-import Domain.Cliente;
-import Domain.Fabrica;
-import Domain.Pedido;
+import Domain.*;
 import datos.*;
 
 /**
@@ -45,7 +42,7 @@ public class JDBC_Practica1 {
     };
 
     private enum MenuFabrica {
-        MOSTRAR_INFORMACION_FABRICA, AGREGAR_FABRICA, ELIMINAR_FABRICA, ACTUALIZAR_FABRICA, SALIR_FABRICA
+        MOSTRAR_INFORMACION_FABRICA, AGREGAR_FABRICA, ELIMINAR_FABRICA, ACTUALIZAR_FABRICA,ELIMINAR_FABRICAS_SIN_PEDIDOS, SALIR_FABRICA
     };
 
     public static void main(String[] args) throws SQLException {
@@ -163,8 +160,9 @@ public class JDBC_Practica1 {
         System.out.println("Dime el ID del cliente para la consulta de pedidos: ");
         int idCliente = Integer.parseInt(lect.nextLine());
 
-        System.out.println("Lista de todos los pedidos y total descuento: \n");
-        clienteDAO.totalPedidosClientes(idCliente);
+        System.out.println("Lista de todos los pedidos del cliente ID " + idCliente + ":");
+        double totalDescuentos = clienteDAO.totalPedidosClientes(idCliente);
+        System.out.println("Total ahorrado con los descuentos para el cliente ID " + idCliente + ": " + totalDescuentos);
     }
 
 
@@ -261,7 +259,7 @@ public class JDBC_Practica1 {
                     actualizarArticulo();
                     break;
                 case ARTICULOS_POR_ANYO:
-                    totalArticulosIncluidosComandas();
+                    totalArticulosPedidosPorAnyo();
                     break;
                 case SALIR_ARTICULO:
                     System.out.println("Saliendo del menú de artículo...");
@@ -306,7 +304,7 @@ public class JDBC_Practica1 {
         System.out.println("Artículo actualizado correctamente.");
     }
 
-    private static void totalArticulosIncluidosComandas() throws SQLException {
+    private static void totalArticulosPedidosPorAnyo() throws SQLException {
         System.out.println("Dime el año que quieres ver: ");
         int anyo = Integer.parseInt(lect.nextLine());
         System.out.println("Lista del total de articulos incluidos en el año dado: \n");
@@ -334,6 +332,9 @@ private static void gestionarFabricas() throws SQLException {
                 break;
             case ACTUALIZAR_FABRICA:
                 actualizarFabrica();
+                break;
+            case ELIMINAR_FABRICAS_SIN_PEDIDOS:
+                eliminarFabricasSinPedidos();
                 break;
             case SALIR_FABRICA:
                 System.out.println("Saliendo del menú de fábricas...");
@@ -382,9 +383,8 @@ private static void actualizarFabrica() throws SQLException {
     System.out.println("Fábrica actualizada correctamente.");
 }
 
-private static void borrarFabricasNoConsultadasArticulos() {
-    System.out.println("Listado de fabricas actuales utilizadas: \n");
-    fabricaDAO.totalComandasClientes();
+private static void eliminarFabricasSinPedidos() throws SQLException {
+    fabricaDAO.eliminarFabricasQueNoTienenPedidos(); 
 }
 
 
@@ -508,7 +508,8 @@ private static void borrarFabricasNoConsultadasArticulos() {
                 .append("\t2) Agregar en la fábrica\n")
                 .append("\t3) Eliminar en la fábrica\n")
                 .append("\t4) Actualizar de la fábrica\n")
-                .append("\t5) Salir del menú de la fábrica\n")
+                .append("\t5) Eliminar Fabricas sin pedidos\n")
+                .append("\t6) Salir del menú de la fábrica\n")
                 .append("\nOpción: ");
         System.out.print(sb.toString());
     }
