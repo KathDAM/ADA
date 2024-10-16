@@ -23,10 +23,10 @@ public class JDBC_Practica1 {
     private static ArticuloDAO articuloDAO = new ArticuloDAO();
     private static FabricaDAO fabricaDAO = new FabricaDAO();
     private static PedidoArticuloDAO pedidoArticuloDAO = new PedidoArticuloDAO();
-   
+    private static DireccionEnvioDAO direccionEnvioDAO = new DireccionEnvioDAO();
 
     private enum MenuGeneral {
-        CLIENTE, PEDIDO, ARTICULO, FABRICA, SALIR_MENU
+        CLIENTE, PEDIDO, ARTICULO, FABRICA,DIRECCION, SALIR_MENU
     };
 
     private enum MenuCliente {
@@ -44,6 +44,11 @@ public class JDBC_Practica1 {
     private enum MenuFabrica {
         MOSTRAR_INFORMACION_FABRICA, AGREGAR_FABRICA, ELIMINAR_FABRICA, ACTUALIZAR_FABRICA,ELIMINAR_FABRICAS_SIN_PEDIDOS, SALIR_FABRICA
     };
+
+    private enum MenuDirecionEnvio {
+        MOSTRAR_INFORMACION_DIRECIONES, AGREGAR_DIRECIONES, ELIMINAR_DIRECIONES, ACTUALIZAR_DIRECIONES, SALIR_DIRECIONES
+    };
+
 
     public static void main(String[] args) throws SQLException {
         MenuGeneral opcionElegida = null;
@@ -71,6 +76,9 @@ public class JDBC_Practica1 {
                     gestionarFabricas();
                     break;
 
+                case DIRECCION:
+                    gestionarDireciones();
+
                 case SALIR_MENU:
                     System.out.println("Cerrando el programa...");
                     break;
@@ -80,6 +88,7 @@ public class JDBC_Practica1 {
         System.out.println("\n\n¡Hasta Luego!\n\n");
         lect.close();
     }
+
 
 //**************** FUNCIONES Y METODOS LANZADAS DESDE LA ELECCIÓN DEL MENÚ DE LA APLICACIÓN ********************
 /************************************************************************************************/
@@ -105,6 +114,7 @@ public class JDBC_Practica1 {
                     break;
                 case LISTADO_PEDIDOS:
                     listadoPedidos();
+                    break;
                 case SALIR_CLIENTE:
                     System.out.println("Saliendo del menú de cliente...");
                     break;
@@ -120,50 +130,50 @@ public class JDBC_Practica1 {
     }
 
     private static void agregarCliente() throws SQLException {
-        System.out.println("Ingrese el id del cliente: ");
-        int id = Integer.parseInt(lect.nextLine());
-        System.out.println("Ingrese el saldo: ");
-        double saldo = lect.nextDouble();
-        System.out.println("Ingrese el límite de crédito: ");
-        double limiteCredito = lect.nextDouble();
-        System.out.println("Ingrese el descuento: ");
-        double descuento = lect.nextDouble();
-
+        int id = solicitarInt("Ingrese el id del cliente: ");
+        double saldo = solicitarDouble("Ingrese el saldo: ");
+        double limiteCredito = solicitarDouble("Ingrese el límite de crédito: ");
+        double descuento = solicitarDouble("Ingrese el descuento: ");
+    
         Cliente cliente = new Cliente(id, saldo, limiteCredito, descuento);
         clienteDAO.insertar(cliente);
         System.out.println("Cliente agregado correctamente.");
     }
-
+    
     private static void eliminarCliente() throws SQLException {
-        System.out.println("Ingrese el id del cliente a eliminar: ");
-        int id = Integer.parseInt(lect.nextLine());
+        int id = solicitarInt("Ingrese el id del cliente a eliminar: ");
         clienteDAO.eliminar(id);
         System.out.println("Cliente eliminado correctamente.");
     }
-
+    
     private static void actualizarCliente() throws SQLException {
-        System.out.println("Ingrese el id del cliente a actualizar: ");
-        int id = Integer.parseInt(lect.nextLine());
-        System.out.println("Ingrese el nuevo saldo: ");
-        double saldo = lect.nextDouble();
-        System.out.println("Ingrese el nuevo límite de crédito: ");
-        double limiteCredito = lect.nextDouble();
-        System.out.println("Ingrese el nuevo descuento: ");
-        double descuento = lect.nextDouble();
-
+        int id = solicitarInt("Ingrese el id del cliente a actualizar: ");
+        double saldo = solicitarDouble("Ingrese el nuevo saldo: ");
+        double limiteCredito = solicitarDouble("Ingrese el nuevo límite de crédito: ");
+        double descuento = solicitarDouble("Ingrese el nuevo descuento: ");
+    
         Cliente cliente = new Cliente(id, saldo, limiteCredito, descuento);
-        clienteDAO.actualizar(cliente);
-        System.out.println("Cliente actualizado correctamente.");
+        boolean actualizado = clienteDAO.actualizar(cliente);
+    
+        if (actualizado) {
+            Cliente clienteActualizado = clienteDAO.obtenerClientePorId(id);
+            System.out.println("Cliente actualizado correctamente: " + clienteActualizado);
+        } else {
+            System.out.println("No se pudo actualizar el cliente.");
+        }
     }
-
+    
     private static void listadoPedidos() throws SQLException {
-        System.out.println("Dime el ID del cliente para la consulta de pedidos: ");
-        int idCliente = Integer.parseInt(lect.nextLine());
-
+        int idCliente = solicitarInt("Dime el ID del cliente para la consulta de pedidos: ");
         System.out.println("Lista de todos los pedidos del cliente ID " + idCliente + ":");
         double totalDescuentos = clienteDAO.totalPedidosClientes(idCliente);
-        System.out.println("Total ahorrado con los descuentos para el cliente ID " + idCliente + ": " + totalDescuentos);
+        if (totalDescuentos > 0) {
+            System.out.println("Total ahorrado con los descuentos: " + totalDescuentos);
+        } else {
+            System.out.println("No se encontraron descuentos para el cliente con ID " + idCliente + ".");
+        }
     }
+    
 
 
 /************************************************************************************************/
@@ -202,40 +212,37 @@ public class JDBC_Practica1 {
     }
 
     private static void agregarPedido() throws SQLException {
-        System.out.println("Ingrese el número del pedido: ");
-        int numero = Integer.parseInt(lect.nextLine());
-        System.out.println("Ingrese la dirección (id numDireccion): ");
-        int numDireccion = Integer.parseInt(lect.nextLine());
-        System.out.println("Ingrese el id del cliente: ");
-        int idCliente = Integer.parseInt(lect.nextLine());
-
+        int numero = solicitarInt("Ingrese el número del pedido: ");
+        int numDireccion = solicitarInt("Ingrese la dirección (id numDireccion): ");
+        int idCliente = solicitarInt("Ingrese el id del cliente: ");
+    
         Pedido pedido = new Pedido(0, new java.sql.Timestamp(System.currentTimeMillis()), numero, numDireccion, idCliente);
         pedidoDAO.insertar(pedido);
         System.out.println("Pedido agregado correctamente.");
     }
-
+    
     private static void eliminarPedido() throws SQLException {
-        System.out.println("Ingrese el id del pedido a eliminar: ");
-        int idPedido = Integer.parseInt(lect.nextLine());
+        int idPedido = solicitarInt("Ingrese el id del pedido a eliminar: ");
         pedidoDAO.eliminar(idPedido);
         System.out.println("Pedido eliminado correctamente.");
     }
-
+    
     private static void actualizarPedido() throws SQLException {
-        System.out.println("Ingrese el id del pedido a actualizar: ");
-        int idPedido = Integer.parseInt(lect.nextLine());
-        System.out.println("Ingrese el nuevo número del pedido: ");
-        int numero = Integer.parseInt(lect.nextLine());
-        System.out.println("Ingrese la nueva dirección (id numDireccion): ");
-        int numDireccion = Integer.parseInt(lect.nextLine());
-        System.out.println("Ingrese el id del cliente: ");
-        int idCliente = Integer.parseInt(lect.nextLine());
-
+        int idPedido = solicitarInt("Ingrese el id del pedido a actualizar: ");
+        int numero = solicitarInt("Ingrese el nuevo número del pedido: ");
+        int numDireccion = solicitarInt("Ingrese la nueva dirección (id numDireccion): ");
+        int idCliente = solicitarInt("Ingrese el id del cliente: ");
+    
         Pedido pedido = new Pedido(idPedido, new java.sql.Timestamp(System.currentTimeMillis()), numero, numDireccion, idCliente);
-        pedidoDAO.actualizar(pedido);
-        System.out.println("Pedido actualizado correctamente.");
+        boolean actualizado = pedidoDAO.actualizar(pedido);
+    
+        if (actualizado) {
+            Pedido pedidoActualizado = pedidoDAO.obtenerPedidoPorId(idPedido);
+            System.out.println("Pedido actualizado correctamente: " + pedidoActualizado);
+        } else {
+            System.out.println("No se pudo actualizar el pedido.");
+        }
     }
-
 
 /************************************************************************************************/
 // ARTICULO
@@ -276,39 +283,38 @@ public class JDBC_Practica1 {
     }
 
     private static void agregarArticulo() throws SQLException {
-        System.out.println("Ingrese el id del artículo: ");
-        int idArticulo = Integer.parseInt(lect.nextLine());
-        System.out.println("Ingrese la descripción del artículo: ");
-        String descripcion = lect.next();
-
+        int idArticulo = solicitarInt("Ingrese el id del artículo: ");
+        String descripcion = solicitarString("Ingrese la descripción del artículo: ");
+    
         Articulo articulo = new Articulo(idArticulo, descripcion);
         articuloDAO.insertar(articulo);
         System.out.println("Artículo agregado correctamente.");
     }
-
+    
     private static void eliminarArticulo() throws SQLException {
-        System.out.println("Ingrese el id del artículo a eliminar: ");
-        int idArticulo = Integer.parseInt(lect.nextLine());
+        int idArticulo = solicitarInt("Ingrese el id del artículo a eliminar: ");
         articuloDAO.eliminar(idArticulo);
         System.out.println("Artículo eliminado correctamente.");
     }
-
+    
     private static void actualizarArticulo() throws SQLException {
-        System.out.println("Ingrese el id del artículo a actualizar: ");
-        int idArticulo = Integer.parseInt(lect.nextLine());
-        System.out.println("Ingrese la nueva descripción del artículo: ");
-        String descripcion = lect.next();
-
+        int idArticulo = solicitarInt("Ingrese el id del artículo a actualizar: ");
+        String descripcion = solicitarString("Ingrese la nueva descripción del artículo: ");
+    
         Articulo articulo = new Articulo(idArticulo, descripcion);
-        articuloDAO.actualizar(articulo);
-        System.out.println("Artículo actualizado correctamente.");
-    }
+        boolean actualizado = articuloDAO.actualizar(articulo);
 
+        if (actualizado) {
+            Articulo articuloActualizado = articuloDAO.obtenerArticuloPorId(idArticulo);
+            System.out.println("Artículo actualizado correctamente: " + articuloActualizado);
+        } else {
+            System.out.println("No se pudo actualizar el artículo.");
+        }
+    }
+    
     private static void totalArticulosPedidosPorAnyo() throws SQLException {
-        System.out.println("Dime el año que quieres ver: ");
-        int anyo = Integer.parseInt(lect.nextLine());
-        System.out.println("Lista del total de articulos incluidos en el año dado: \n");
-        pedidoArticuloDAO.obtenerTotalArticulosPorAnyo(anyo);
+        int anyo = solicitarInt("Dime el año que quieres ver: ");
+        pedidoDAO.calcularTotalArticulosPorAnyo(anyo);
     }
 
 
@@ -351,40 +357,111 @@ private static void mostrarInformacionFabrica() throws SQLException {
 }
 
 private static void agregarFabrica() throws SQLException {
-    System.out.println("Ingrese el id de la fábrica: ");
-    int idFabrica = Integer.parseInt(lect.nextLine());
-    System.out.println("Ingrese el nombre de la fábrica: ");
-    String nombre = lect.nextLine();
-    System.out.println("Ingrese el nombre de la fábrica: ");
-    int totalArticulos = Integer.parseInt(lect.nextLine());
+    int idFabrica = solicitarInt("Ingrese el id de la fábrica: ");
+    String nombre = solicitarString("Ingrese el nombre de la fábrica: ");
+    int totalArticulos = solicitarInt("Ingrese el total de artículos: ");
 
-    Fabrica fabrica = new Fabrica(idFabrica, nombre,totalArticulos);
+    Fabrica fabrica = new Fabrica(idFabrica, nombre, totalArticulos);
     fabricaDAO.insertar(fabrica);
     System.out.println("Fábrica agregada correctamente.");
 }
 
 private static void eliminarFabrica() throws SQLException {
-    System.out.println("Ingrese el id de la fábrica a eliminar: ");
-    int idFabrica = Integer.parseInt(lect.nextLine());
+    int idFabrica = solicitarInt("Ingrese el id de la fábrica a eliminar: ");
     fabricaDAO.eliminar(idFabrica);
     System.out.println("Fábrica eliminada correctamente.");
 }
 
 private static void actualizarFabrica() throws SQLException {
-    System.out.println("Ingrese el id de la fábrica a actualizar: ");
-    int idFabrica = Integer.parseInt(lect.nextLine());
-    System.out.println("Ingrese el nuevo nombre de la fábrica: ");
-    String nombre = lect.nextLine();
-    System.out.println("Ingrese el total de artículos de la fábrica: ");
-    int totalArticulos = Integer.parseInt(lect.nextLine());
+    int idFabrica = solicitarInt("Ingrese el id de la fábrica a actualizar: ");
+    String nombre = solicitarString("Ingrese el nuevo nombre de la fábrica: ");
+    int totalArticulos = solicitarInt("Ingrese el total de artículos: ");
 
-    Fabrica fabrica = new Fabrica(idFabrica, nombre,totalArticulos);
-    fabricaDAO.actualizar(fabrica);
-    System.out.println("Fábrica actualizada correctamente.");
+    Fabrica fabrica = new Fabrica(idFabrica, nombre, totalArticulos);
+    boolean actualizado = fabricaDAO.actualizar(fabrica);
+    
+    if (actualizado) {
+        Fabrica fabricaActualizada = fabricaDAO.obtenerFabricaPorId(idFabrica);
+        System.out.println("Fábrica actualizada correctamente: " + fabricaActualizada);
+    } else {
+        System.out.println("No se pudo actualizar la fábrica.");
+    }
 }
 
 private static void eliminarFabricasSinPedidos() throws SQLException {
-    fabricaDAO.eliminarFabricasQueNoTienenPedidos(); 
+    fabricaDAO.eliminarFabricasQueNoTienenPedidos();
+}
+
+/************************************************************************************************/
+// DIRECCION
+private static void gestionarDireciones() throws SQLException {
+    MenuDirecionEnvio opcionDireccion = null;
+    do {
+        imprimirMenuDireccion();
+        opcionDireccion = opcionValidaMenuDireccion();
+
+        switch (opcionDireccion) {
+            case MOSTRAR_INFORMACION_DIRECIONES:
+                mostrarInformacionDireccion();
+                break;
+            case AGREGAR_DIRECIONES:
+                agregarDireccion();
+                break;
+            case ELIMINAR_DIRECIONES:
+                eliminarDireccion();
+                break;
+            case ACTUALIZAR_DIRECIONES:
+                actualizarDireccion();
+                break;
+            case SALIR_DIRECIONES:
+                System.out.println("Saliendo del menú de direcciones...");
+                break;
+        }
+    } while (opcionDireccion != MenuDirecionEnvio.SALIR_DIRECIONES);
+}
+
+private static void mostrarInformacionDireccion() throws SQLException {
+    List<DireccionEnvio> direcciones = direccionEnvioDAO.seleccionar();
+    for (DireccionEnvio direccion : direcciones) {
+        System.out.println(direccion);
+    }
+}
+
+private static void agregarDireccion() throws SQLException {
+    int numDireccion = solicitarInt("Ingrese el id de la dirección: ");
+    int numero = solicitarInt("Ingrese el número de la dirección: ");
+    String calle = solicitarString("Ingrese la calle: ");
+    String comuna = solicitarString("Ingrese la comuna: ");
+    String ciudad = solicitarString("Ingrese la ciudad: ");
+    int idCliente = solicitarInt("Ingrese el id del cliente asociado: ");
+
+    DireccionEnvio direccionEnvio = new DireccionEnvio(numDireccion, numero, calle, comuna, ciudad, idCliente);
+    direccionEnvioDAO.insertar(direccionEnvio);
+    System.out.println("Dirección agregada correctamente.");
+}
+
+private static void eliminarDireccion() throws SQLException {
+    int idDireccion = solicitarInt("Ingrese el id de la dirección a eliminar: ");
+    direccionEnvioDAO.eliminar(idDireccion);
+    System.out.println("Dirección eliminada correctamente.");
+}
+
+private static void actualizarDireccion() throws SQLException {
+    int numDireccion = solicitarInt("Ingrese el id de la dirección a actualizar: ");
+    int numero = solicitarInt("Ingrese el nuevo número de la dirección: ");
+    String calle = solicitarString("Ingrese la nueva calle: ");
+    String comuna = solicitarString("Ingrese la nueva comuna: ");
+    String ciudad = solicitarString("Ingrese la nueva ciudad: ");
+    int idCliente = solicitarInt("Ingrese el id del cliente asociado: ");
+
+    DireccionEnvio direccionEnvio = new DireccionEnvio(numDireccion, numero, calle, comuna, ciudad, idCliente);
+    boolean actualizado = direccionEnvioDAO.actualizar(direccionEnvio);
+    if (actualizado) {
+        DireccionEnvio direccionActualizada = direccionEnvioDAO.obtenerDireccionPorId(numDireccion);
+        System.out.println("Dirección actualizada correctamente: " + direccionActualizada);
+    } else {
+        System.out.println("No se pudo actualizar la dirección.");
+    }
 }
 
 
@@ -442,7 +519,59 @@ private static void eliminarFabricasSinPedidos() throws SQLException {
             return opcionValidaMenuFabrica();
         }
     }
+
+    private static MenuDirecionEnvio opcionValidaMenuDireccion() {
+        try {
+            int choiceInt = Integer.valueOf(lect.nextLine());
+            return MenuDirecionEnvio.values()[choiceInt-1];
+        } catch (RuntimeException re) {
+            System.out.println("Opción inválida... Inténtelo otra vez.");
+            return opcionValidaMenuDireccion();
+        }
+    }
     
+    private static int solicitarInt(String mensaje) {
+        int valor;
+        while (true) {
+            try {
+                System.out.println(mensaje);
+                valor = Integer.parseInt(lect.nextLine());
+                break;
+            } catch (NumberFormatException e) {
+                System.out.println("Error: Por favor ingrese un número entero válido.");
+            }
+        }
+        return valor;
+    }
+    
+    private static double solicitarDouble(String mensaje) {
+        double valor;
+        while (true) {
+            try {
+                System.out.println(mensaje);
+                valor = Double.parseDouble(lect.nextLine());
+                break;
+            } catch (NumberFormatException e) {
+                System.out.println("Error: Por favor ingrese un número decimal válido.");
+            }
+        }
+        return valor;
+    }
+    
+    private static String solicitarString(String mensaje) {
+        String valor;
+        while (true) {
+            System.out.println(mensaje);
+            valor = lect.nextLine();
+            if (!valor.trim().isEmpty()) {
+                break;
+            } else {
+                System.out.println("Error: El valor no puede estar vacío.");
+            }
+        }
+        return valor;
+    }
+
 /************************************************************************************************/
 
 //**************** MÉTODOS PARA IMPRIMIR LOS MENUS ********************
@@ -510,6 +639,19 @@ private static void eliminarFabricasSinPedidos() throws SQLException {
                 .append("\t4) Actualizar de la fábrica\n")
                 .append("\t5) Eliminar Fabricas sin pedidos\n")
                 .append("\t6) Salir del menú de la fábrica\n")
+                .append("\nOpción: ");
+        System.out.print(sb.toString());
+    }
+
+    private static void imprimirMenuDireccion() {
+        StringBuilder sb = new StringBuilder()
+                .append("\n\n¡BIENVENIDO AL MENÚ DE DIRECCIONES!:")
+                .append("\n\nElije una opción:\n")
+                .append("\t1) Mostrar información de direcciones\n")
+                .append("\t2) Agregar dirección\n")
+                .append("\t3) Eliminar dirección\n")
+                .append("\t4) Actualizar dirección\n")
+                .append("\t5) Salir del menú de direcciones\n")
                 .append("\nOpción: ");
         System.out.print(sb.toString());
     }

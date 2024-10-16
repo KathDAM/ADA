@@ -19,8 +19,7 @@ public class PedidoArticuloDAO {
     private static final String SQL_INSERT = "INSERT INTO PedidoArticulo (idArticulo, numero, cantidad) VALUES (?,?,?)";
     private static final String SQL_UPDATE = "UPDATE PedidoArticulo SET idArticulo = ?, cantidad = ? WHERE idPedido = ?";
     private static final String SQL_DELETE = "DELETE FROM PedidoArticulo WHERE idPedido = ?";
-    private static final String SQL_TOTAL_ARTICULOS_ANIO = "SELECT SUM(pa.cantidad) AS totalCantidad " +"FROM PedidoArticulo pa " + "JOIN Pedido p ON pa.idPedido = p.idPedido " + "WHERE YEAR(p.fecha) = ?";
-
+    
     public List<PedidoArticulo> seleccionar() throws SQLException {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -107,34 +106,6 @@ public class PedidoArticuloDAO {
         return rowUpdated;
     }
 
-    public int obtenerTotalArticulosPorAnyo(int anyo) throws SQLException {
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
-        int totalCantidad = 0;
-
-        try {
-            conn = Conexion.getConnection();
-            stmt = conn.prepareStatement(SQL_TOTAL_ARTICULOS_ANIO);
-            stmt.setInt(1, anyo); 
-            rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                totalCantidad = rs.getInt("totalCantidad");
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-            throw new SQLException("Error al obtener la cantidad de artículos para el año " + anyo, ex);
-        } finally {
-
-            Conexion.close(rs);
-            Conexion.close(stmt);
-            Conexion.close(conn);
-        }
-
-        return totalCantidad; 
-    }
-    
 }
 
 

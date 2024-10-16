@@ -17,6 +17,7 @@ public class FabricaDAO {
     private static final String SQL_UPDATE = "UPDATE Pedido SET telefono = ?, totalArticulos = ? WHERE idFabrica = ?";
     private static final String SQL_DELETE = "DELETE FROM Fabrica WHERE idFabrica = ?";
     private static final String SQL_DELETE_FABRICAS_SIN_COMANDAS = "DELETE FROM Fabrica WHERE idFabrica NOT IN (SELECT DISTINCT AF.idFabrica FROM ArticuloFabrica AF JOIN PedidoArticulo PA ON AF.idArticulo = PA.idArticulo)";
+    private static final String SQL_SELECT_BY_ID = "SELECT idFabrica, nombre, totalArticulos FROM Fabrica WHERE idFabrica = ?";
 
     public List<Fabrica> seleccionar() throws SQLException {
         Connection conn = null;
@@ -46,6 +47,35 @@ public class FabricaDAO {
         return fabricas;
     }
 
+    public Fabrica obtenerFabricaPorId(int idFabrica) throws SQLException {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        Fabrica fabrica = null;
+    
+        try {
+            conn = Conexion.getConnection();
+            stmt = conn.prepareStatement(SQL_SELECT_BY_ID);
+            stmt.setInt(1, idFabrica);
+            rs = stmt.executeQuery();
+    
+            if (rs.next()) {
+                int id = rs.getInt("idFabrica");
+                String nombre = rs.getString("nombre");
+                int totalArticulos = rs.getInt("totalArticulos");
+    
+                fabrica = new Fabrica(id, nombre, totalArticulos);
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.out);
+        } finally {
+            Conexion.close(rs);
+            Conexion.close(stmt);
+            Conexion.close(conn);
+        }
+        return fabrica; 
+    }
+    
     public int insertar(Fabrica fabrica) throws SQLException {
         Connection conn = null;
         PreparedStatement stmt = null;

@@ -183,7 +183,8 @@ public class ClienteDAO {
 
     public double totalPedidosClientes(int idCliente) throws SQLException {
         if (obtenerClientePorId(idCliente) == null) {
-            System.out.printf("El cliente no existe");
+            System.out.printf("El cliente con ID " + idCliente + " no existe.");
+            return 0;
         }
 
         double totalDescuentos = calcularTotalDescuentos(idCliente);

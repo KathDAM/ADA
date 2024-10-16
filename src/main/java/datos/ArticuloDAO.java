@@ -19,7 +19,8 @@ public class ArticuloDAO {
     private static final String SQL_INSERT = "INSERT INTO Articulo (idArticulo, descripcion) VALUES (?,?)";
     private static final String SQL_UPDATE = "UPDATE Articulo SET descripcion = ? WHERE idArticulo = ?";
     private static final String SQL_DELETE = "DELETE FROM Articulo WHERE idArticulo = ?";
-   // private static final String SQL_SELECT_BY_YEAR = "SELECT PA.cantidad FROM Pedido P JOIN PedidoArticulo PA ON P.idPedido = PA.idPedido WHERE YEAR(P.fecha) = ?";
+    private static final String SQL_SELECT_BY_ID = "SELECT * FROM articulos WHERE idArticulo = ?";
+    // private static final String SQL_SELECT_BY_YEAR = "SELECT PA.cantidad FROM Pedido P JOIN PedidoArticulo PA ON P.idPedido = PA.idPedido WHERE YEAR(P.fecha) = ?";
 
     public List<Articulo> seleccionar() throws SQLException {
         Connection conn = null;
@@ -98,6 +99,12 @@ public class ArticuloDAO {
             stmt.setString(2, articulo.getDescripcion());
             rowUpdated = stmt.executeUpdate() > 0;
 
+            if (rowUpdated) {
+                // Si se actualizó correctamente, mostrar el artículo actualizado
+                Articulo articuloActualizado = obtenerArticuloPorId(articulo.getIdArticulo());
+                System.out.println("Artículo actualizado: " + articuloActualizado);
+            }
+
         } catch (SQLException ex) {
             ex.printStackTrace(System.out);
         } finally {
@@ -106,6 +113,33 @@ public class ArticuloDAO {
         }
         return rowUpdated;
     }
+
+    public static Articulo obtenerArticuloPorId(int idArticulo) throws SQLException {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        Articulo articulo = null;
+
+        try {
+            conn = Conexion.getConnection();
+            stmt = conn.prepareStatement(SQL_SELECT_BY_ID);
+            stmt.setInt(1, idArticulo);
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                articulo = new Articulo(rs.getInt("idArticulo"), rs.getString("descripcion"));
+            }
+        } catch (SQLException ex) {
+            throw new SQLException("Error al obtener el artículo por ID: " + idArticulo, ex);
+        } finally {
+            Conexion.close(rs);
+            Conexion.close(stmt);
+            Conexion.close(conn);
+        }
+
+        return articulo;
+    }
+    
 
    /*  public int calcularTotalArticulosAnyo(int any) throws SQLException {
         Connection conn = null;

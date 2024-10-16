@@ -23,7 +23,8 @@ public class DireccionEnvioDAO {
     private static final String SQL_INSERT = "INSERT INTO DireccionEnvio (numDireccion, numero, calle, comuna, ciudad,idCliente ) VALUES (?,?,?,?,?,?)";
     private static final String SQL_UPDATE = "UPDATE DireccionEnvio SET numDireccion = ?, numero = ?, calle = ? , comuna = ?, ciudad = ?, idCliente = ? WHERE idCliente = ?";
     private static final String SQL_DELETE = "DELETE FROM DireccionEnvio WHERE idCliente = ?";
-
+    private static final String SQL_SELECT_BY_ID = "SELECT numDireccion, numero, calle, comuna, ciudad, idCliente FROM DireccionEnvio WHERE numDireccion = ?";
+           
     public List<DireccionEnvio> seleccionar() throws SQLException{
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -53,6 +54,37 @@ public class DireccionEnvioDAO {
             Conexion.close(stmt);  
         }
         return direccionEnvios;
+    }
+    
+    public DireccionEnvio obtenerDireccionPorId(int numDireccion) throws SQLException {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        DireccionEnvio direccionEnvio = null;
+    
+        try {
+            conn = Conexion.getConnection();
+            stmt = conn.prepareStatement(SQL_SELECT_BY_ID);
+            stmt.setInt(1, numDireccion); 
+            rs = stmt.executeQuery();
+    
+            if (rs.next()) {
+                int numero = rs.getInt("numero");
+                String calle = rs.getString("calle");
+                String comuna = rs.getString("comuna");
+                String ciudad = rs.getString("ciudad");
+                int idCliente = rs.getInt("idCliente");
+    
+                direccionEnvio = new DireccionEnvio(numDireccion, numero, calle, comuna, ciudad, idCliente);
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.out);
+        } finally {
+            Conexion.close(rs);
+            Conexion.close(stmt);
+            Conexion.close(conn);
+        }
+        return direccionEnvio; 
     }
     
     public int insertar(DireccionEnvio direccionEnvio){

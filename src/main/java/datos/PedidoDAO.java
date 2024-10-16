@@ -112,6 +112,35 @@ public class PedidoDAO {
         return rowUpdated;
     }
       
+    public Pedido obtenerPedidoPorId(int idPedido) throws SQLException {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        Pedido pedido = null;
+    
+        try {
+            conn = Conexion.getConnection();
+            stmt = conn.prepareStatement("SELECT idPedido, fecha, numero, numDireccion, idCliente FROM Pedido WHERE idPedido = ?");
+            stmt.setInt(1, idPedido);
+            rs = stmt.executeQuery();
+    
+            if (rs.next()) {
+                Timestamp fecha = rs.getTimestamp("fecha");
+                int numero = rs.getInt("numero");
+                int numDireccion = rs.getInt("numDireccion");
+                int idCliente = rs.getInt("idCliente");
+    
+                pedido = new Pedido(idPedido, fecha, numero, numDireccion, idCliente);
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.out);
+        } finally {
+            Conexion.close(rs);
+            Conexion.close(stmt);
+            Conexion.close(conn);
+        }
+        return pedido; 
+    }
 
     public int calcularTotalArticulosPorAnyo(int any) throws SQLException {
         Connection conn = null;
