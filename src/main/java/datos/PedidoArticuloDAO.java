@@ -4,10 +4,7 @@
  */
 package datos;
 import Domain.PedidoArticulo;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 /**
@@ -15,95 +12,83 @@ import java.util.List;
  * @author catalvman
  */
 public class PedidoArticuloDAO {
-    private static final String SQL_SELECT = "SELECT idPedido, idArticulo, cantidad FROM PedidoArticulo";
+    private static final String SQL_SELECT_ALL = "SELECT * FROM PedidoArticulo";
+    private static final String SQL_SELECT_BY_ID = "SELECT * FROM PedidoArticulo WHERE idPedido = ? AND idArticulo = ?";
     private static final String SQL_INSERT = "INSERT INTO PedidoArticulo (idArticulo, numero, cantidad) VALUES (?,?,?)";
     private static final String SQL_UPDATE = "UPDATE PedidoArticulo SET idArticulo = ?, cantidad = ? WHERE idPedido = ?";
     private static final String SQL_DELETE = "DELETE FROM PedidoArticulo WHERE idPedido = ?";
     
-    public List<PedidoArticulo> seleccionar() throws SQLException {
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
-        PedidoArticulo pedidoArt = null;
-        List<PedidoArticulo> pedidosArt = new ArrayList<>();
-        try {
-            conn = Conexion.getConnection();
-            stmt = conn.prepareStatement(SQL_SELECT);
-            rs = stmt.executeQuery();
+    public List<PedidoArticulo> obtenerTodosLosPedidosArticulos() throws SQLException {
+        List<PedidoArticulo> pedidosArticulos = new ArrayList<>();
+        
+        try (Connection conn = Conexion.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(SQL_SELECT_ALL)) {
+            
             while (rs.next()) {
                 int idPedido = rs.getInt("idPedido");
                 int idArticulo = rs.getInt("idArticulo");
                 int cantidad = rs.getInt("cantidad");
-  
-                pedidoArt = new PedidoArticulo(idPedido, idArticulo, cantidad);
-                pedidosArt.add(pedidoArt);
+                
+                PedidoArticulo pedidoArticulo = new PedidoArticulo(idPedido, idArticulo, cantidad);
+                pedidosArticulos.add(pedidoArticulo);
             }
-        } catch (SQLException ex) {
-            ex.printStackTrace(System.out);
-        } finally {
-            Conexion.close(rs);
-            Conexion.close(stmt);
-            Conexion.close(conn);
         }
-        return pedidosArt;
+        return pedidosArticulos;
     }
 
-    public int insertar(PedidoArticulo pedidoArt) throws SQLException {
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        int registros = 0;
-        try {
-            conn = Conexion.getConnection();
-            stmt = conn.prepareStatement(SQL_INSERT);
-            stmt.setInt(1, pedidoArt.getIdPedido());
-            stmt.setInt(2, pedidoArt.getIdArticulo());
-            stmt.setInt(3, pedidoArt.getCantidad());
-            registros = stmt.executeUpdate();
-        } catch (SQLException ex) {
-            ex.printStackTrace(System.out);
-        } finally {
-            Conexion.close(stmt);
-            Conexion.close(conn);
-        }
-        return registros;
-    }
-
-    public boolean eliminar(int idPedido) throws SQLException {
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        boolean rowDeleted = false;
-        try {
-            conn = Conexion.getConnection();
-            stmt = conn.prepareStatement(SQL_DELETE);
+    public PedidoArticulo obtenerPedidoArticuloPorId(int idPedido, int idArticulo) throws SQLException {
+        PedidoArticulo pedidoArticulo = null;
+        
+        try (Connection conn = Conexion.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_SELECT_BY_ID)) {
+            
             stmt.setInt(1, idPedido);
-            rowDeleted = stmt.executeUpdate() > 0;
-        } catch (SQLException ex) {
-            ex.printStackTrace(System.out);
-        } finally {
-            Conexion.close(stmt);
-            Conexion.close(conn);
+            stmt.setInt(2, idArticulo);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    int cantidad = rs.getInt("cantidad");
+                    pedidoArticulo = new PedidoArticulo(idPedido, idArticulo, cantidad);
+                }
+            }
         }
-        return rowDeleted;
+        return pedidoArticulo;
     }
 
-    public boolean actualizar(PedidoArticulo pedidoArt) throws SQLException {
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        boolean rowUpdated = false;
-        try {
-            conn = Conexion.getConnection();
-            stmt = conn.prepareStatement(SQL_UPDATE);
-            stmt.setInt(1, pedidoArt.getIdPedido());
-            stmt.setInt(2, pedidoArt.getIdArticulo());
-            stmt.setInt(3, pedidoArt.getCantidad());
-            rowUpdated = stmt.executeUpdate() > 0;
-        } catch (SQLException ex) {
-            ex.printStackTrace(System.out);
-        } finally {
-            Conexion.close(stmt);
-            Conexion.close(conn);
+    public void insertar(PedidoArticulo pedidoArticulo) throws SQLException {
+        try (Connection conn = Conexion.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_INSERT)) {
+            
+            stmt.setInt(1, pedidoArticulo.getIdPedido());
+            stmt.setInt(2, pedidoArticulo.getIdArticulo());
+            stmt.setInt(3, pedidoArticulo.getCantidad());
+            
+            stmt.executeUpdate();
         }
-        return rowUpdated;
+    }
+
+    public void eliminar(int idPedido, int idArticulo) throws SQLException {
+        try (Connection conn = Conexion.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_DELETE)) {
+            
+            stmt.setInt(1, idPedido);
+            stmt.setInt(2, idArticulo);
+            
+            stmt.executeUpdate();
+        }
+    }
+
+    public void actualizar(PedidoArticulo pedidoArticulo) throws SQLException {
+        try (Connection conn = Conexion.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_UPDATE)) {
+            
+            stmt.setInt(1, pedidoArticulo.getCantidad());
+            stmt.setInt(2, pedidoArticulo.getIdPedido());
+            stmt.setInt(3, pedidoArticulo.getIdArticulo());
+            
+            stmt.executeUpdate();
+        }
     }
 
 }

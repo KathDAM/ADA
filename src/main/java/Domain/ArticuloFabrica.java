@@ -13,12 +13,14 @@ public class ArticuloFabrica {
     private int idArticulo;
     private int idFabrica;
     private int existencias;
+    private double precio;
     
     //CONSTRUCTOR
-    public ArticuloFabrica(int idArticulo, int idFabrica, int existencias) {
+    public ArticuloFabrica(int idArticulo, int idFabrica, int existencias, double precio) {
         this.idArticulo = idArticulo;
         this.idFabrica = idFabrica;
         this.existencias = existencias;
+        this.precio = precio;
     }
     
     //GETTER Y SETTER
@@ -46,8 +48,16 @@ public class ArticuloFabrica {
         this.existencias = existencias;
     }
 
+    public double getPrecio() {
+        return precio;
+    }
+
+    public void setPrecio(double precio) {
+        this.precio = precio;
+    }
+
     @Override
     public String toString() {
-        return "ArticuloFabrica{" + "idArticulo=" + idArticulo + ", idFabrica=" + idFabrica + ", existencias=" + existencias + '}';
+        return "ArticuloFabrica [" + "ID Articulo: " + idArticulo + ", idFabrica: " + idFabrica + ", existencias: " + existencias + ", precio: " + precio + ']';
     }
 }

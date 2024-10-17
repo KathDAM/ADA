@@ -5,167 +5,104 @@
 package datos;
 
 import Domain.Articulo;
-import static datos.Conexion.getConnection;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  *
  * @author catalvman
  */
 public class ArticuloDAO {
-    private static final String SQL_SELECT = "SELECT idArticulo, descripcion FROM Articulo";
+    private static final String SQL_SELECT_ALL = "SELECT * FROM Articulo";
+    private static final String SQL_SELECT_BY_ID = "SELECT * FROM Articulo WHERE idArticulo = ?";
     private static final String SQL_INSERT = "INSERT INTO Articulo (idArticulo, descripcion) VALUES (?,?)";
     private static final String SQL_UPDATE = "UPDATE Articulo SET descripcion = ? WHERE idArticulo = ?";
     private static final String SQL_DELETE = "DELETE FROM Articulo WHERE idArticulo = ?";
-    private static final String SQL_SELECT_BY_ID = "SELECT * FROM articulos WHERE idArticulo = ?";
-    // private static final String SQL_SELECT_BY_YEAR = "SELECT PA.cantidad FROM Pedido P JOIN PedidoArticulo PA ON P.idPedido = PA.idPedido WHERE YEAR(P.fecha) = ?";
-
-    public List<Articulo> seleccionar() throws SQLException {
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
-        Articulo articulo = null;
+    
+    public List<Articulo> obtenerTodosLosArticulos() throws SQLException {
         List<Articulo> articulos = new ArrayList<>();
-        try {
-            conn = getConnection();
-            stmt = conn.prepareStatement(SQL_SELECT);
-            rs = stmt.executeQuery();
+        
+        try (Connection conn = Conexion.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(SQL_SELECT_ALL)) {
+            
             while (rs.next()) {
                 int idArticulo = rs.getInt("idArticulo");
                 String descripcion = rs.getString("descripcion");
-                articulo = new Articulo(idArticulo, descripcion);
+                Articulo articulo = new Articulo(idArticulo, descripcion);
                 articulos.add(articulo);
             }
-        } catch (SQLException ex) {
-            ex.printStackTrace(System.out);
-        } finally {
-            Conexion.close(conn);
-            Conexion.close(rs);
-            Conexion.close(stmt);
         }
         return articulos;
     }
 
+    public Articulo obtenerArticuloPorId(int idArticulo) throws SQLException {
+        Articulo articulo = null;
+
+        try (Connection conn = Conexion.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(SQL_SELECT_BY_ID)) {
+            
+            stmt.setInt(1, idArticulo);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    String descripcion = rs.getString("descripcion");
+                    articulo = new Articulo(idArticulo, descripcion);
+                }
+            }
+        }
+        return articulo;
+    }
+
     public int insertar(Articulo articulo) throws SQLException {
-        Connection conn = null;
-        PreparedStatement stmt = null;
         int registros = 0;
-        try {
-            conn = Conexion.getConnection();
-            stmt = conn.prepareStatement(SQL_INSERT);
+        
+        try(Connection conn = Conexion.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(SQL_INSERT)){
+           
             stmt.setInt(1, articulo.getIdArticulo());
             stmt.setString(2, articulo.getDescripcion());
             registros = stmt.executeUpdate();
-
-        } catch (SQLException ex) {
-            ex.printStackTrace(System.out);
-        } finally {
-            Conexion.close(stmt);
-            Conexion.close(conn);
-        }
+        } 
         return registros;
     }
 
     public boolean eliminar(int idArticulo) throws SQLException {
-        Connection conn = null;
-        PreparedStatement stmt = null;
         boolean rowDeleted = false;
 
-        try {
-            conn = Conexion.getConnection();
-            stmt = conn.prepareStatement(SQL_DELETE);
+        try (Connection conn = Conexion.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(SQL_DELETE)) {
             stmt.setInt(1, idArticulo);
             rowDeleted = stmt.executeUpdate() > 0;
-
-        } catch (SQLException ex) {
-            ex.printStackTrace(System.out);
-        } finally {
-            Conexion.close(stmt);
-            Conexion.close(conn);
         }
         return rowDeleted;
     }
 
     public boolean actualizar(Articulo articulo) throws SQLException {
-        Connection conn = null;
-        PreparedStatement stmt = null;
         boolean rowUpdated = false;
-        try {
-            conn = Conexion.getConnection();
-            stmt = conn.prepareStatement(SQL_UPDATE);
-            stmt.setInt(1, articulo.getIdArticulo());
-            stmt.setString(2, articulo.getDescripcion());
+    
+        try (Connection conn = Conexion.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_UPDATE)) {
+             
+            stmt.setString(1, articulo.getDescripcion()); 
+            stmt.setInt(2, articulo.getIdArticulo()); 
             rowUpdated = stmt.executeUpdate() > 0;
-
-            if (rowUpdated) {
-                // Si se actualizó correctamente, mostrar el artículo actualizado
-                Articulo articuloActualizado = obtenerArticuloPorId(articulo.getIdArticulo());
-                System.out.println("Artículo actualizado: " + articuloActualizado);
-            }
-
-        } catch (SQLException ex) {
-            ex.printStackTrace(System.out);
-        } finally {
-            Conexion.close(stmt);
-            Conexion.close(conn);
+    
         }
         return rowUpdated;
     }
 
-    public static Articulo obtenerArticuloPorId(int idArticulo) throws SQLException {
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
-        Articulo articulo = null;
-
-        try {
-            conn = Conexion.getConnection();
-            stmt = conn.prepareStatement(SQL_SELECT_BY_ID);
+    public boolean existeArticulo(int idArticulo) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM Articulo WHERE idArticulo = ?";
+        try (Connection conn = Conexion.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, idArticulo);
-            rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                articulo = new Articulo(rs.getInt("idArticulo"), rs.getString("descripcion"));
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0; 
+                }
             }
-        } catch (SQLException ex) {
-            throw new SQLException("Error al obtener el artículo por ID: " + idArticulo, ex);
-        } finally {
-            Conexion.close(rs);
-            Conexion.close(stmt);
-            Conexion.close(conn);
         }
-
-        return articulo;
+        return false; 
     }
     
-
-   /*  public int calcularTotalArticulosAnyo(int any) throws SQLException {
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
-        int totalArticulos = 0;
-
-        try {
-            conn = Conexion.getConnection(); 
-            stmt = conn.prepareStatement(SQL_SELECT_BY_YEAR); 
-            stmt.setInt(1, any); 
-
-            rs = stmt.executeQuery(); 
-
-            while (rs.next()) {
-                totalArticulos += rs.getInt("cantidad");
-            }
-
-        } catch (SQLException ex) {
-            ex.printStackTrace(System.out);
-        } finally {
-            Conexion.close(rs);
-            Conexion.close(stmt);
-            Conexion.close(conn);
-        }
-        return totalArticulos;
-    }
-*/
 }

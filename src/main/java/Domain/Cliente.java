@@ -64,6 +64,6 @@ public class Cliente {
 
     @Override
     public String toString() {
-        return "Cliente{" + "idCliente=" + idCliente + ", saldo=" + saldo + ", limiteCredito=" + limiteCredito + ", descuento=" + descuento + '}';
+        return "Cliente[" + " ID Cliente: " + idCliente + ", saldo: " + saldo + ", limiteCredito: " + limiteCredito + ", descuento: " + descuento + " ]";
     }
 }

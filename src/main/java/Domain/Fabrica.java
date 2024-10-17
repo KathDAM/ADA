@@ -12,13 +12,11 @@ public class Fabrica {
     //ATRIBUTOS
     private int idFabrica;
     private String telefono;
-    private int totalArticulos;
-    
+
     //CONSTRUCTOR
-    public Fabrica(int idFabrica, String telefono, int totalArticulos) {
+    public Fabrica(int idFabrica, String telefono) {
         this.idFabrica = idFabrica;
         this.telefono = telefono;
-        this.totalArticulos = totalArticulos;
     }
     
     //GETTER Y SETTER
@@ -38,16 +36,8 @@ public class Fabrica {
         this.telefono = telefono;
     }
 
-    public int getTotalArticulos() {
-        return totalArticulos;
-    }
-
-    public void setTotalArticulos(int totalArticulos) {
-        this.totalArticulos = totalArticulos;
-    }
-
     @Override
     public String toString() {
-        return "Fabrica{" + "idFabrica=" + idFabrica + ", telefono=" + telefono + ", totalArticulos=" + totalArticulos + '}';
+        return "Fabrica[" + " ID Fabrica: " + idFabrica + ", telefono: " + telefono +" ]";
     }
 }

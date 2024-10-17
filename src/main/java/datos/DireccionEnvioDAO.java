@@ -5,12 +5,7 @@
 package datos;
 
 import Domain.DireccionEnvio;
-import static datos.Conexion.close;
-import static datos.Conexion.getConnection;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,149 +14,113 @@ import java.util.List;
  * @author catalvman
  */
 public class DireccionEnvioDAO {
-    private static final String SQL_SELECT = "SELECT numDireccion, numero, calle, comuna, ciudad, idCliente  FROM DireccionEnvio";
-    private static final String SQL_INSERT = "INSERT INTO DireccionEnvio (numDireccion, numero, calle, comuna, ciudad,idCliente ) VALUES (?,?,?,?,?,?)";
-    private static final String SQL_UPDATE = "UPDATE DireccionEnvio SET numDireccion = ?, numero = ?, calle = ? , comuna = ?, ciudad = ?, idCliente = ? WHERE idCliente = ?";
+    private static final String SQL_SELECT_ALL = "SELECT idDireccion, numero, calle, comuna, ciudad, idCliente  FROM DireccionEnvio";
+    private static final String SQL_SELECT_BY_ID = "SELECT idDireccion, numero, calle, comuna, ciudad, idCliente FROM DireccionEnvio WHERE numDireccion = ?";
+    private static final String SQL_INSERT = "INSERT INTO DireccionEnvio (numero, calle, comuna, ciudad, idCliente) VALUES (?, ?, ?, ?, ?)";
+    private static final String SQL_UPDATE = "UPDATE DireccionEnvio SET numero = ?, calle = ?, comuna = ?, ciudad = ?, idCliente = ? WHERE idDireccion = ?";
     private static final String SQL_DELETE = "DELETE FROM DireccionEnvio WHERE idCliente = ?";
-    private static final String SQL_SELECT_BY_ID = "SELECT numDireccion, numero, calle, comuna, ciudad, idCliente FROM DireccionEnvio WHERE numDireccion = ?";
+   
            
-    public List<DireccionEnvio> seleccionar() throws SQLException{
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
-        DireccionEnvio direccionEnvio = null;
-        List<DireccionEnvio> direccionEnvios = new ArrayList<>();
-        try{
-            conn = getConnection();
-            stmt = conn.prepareStatement(SQL_SELECT);
-            rs = stmt.executeQuery();
-            while(rs.next()){
-                int numDireccion = rs.getInt("numDireccion");
+    public List<DireccionEnvio> obtenerTodasLasDirecciones() throws SQLException {
+        List<DireccionEnvio> direccionesEnvio = new ArrayList<>();
+        
+        try (Connection conn = Conexion.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(SQL_SELECT_ALL)) {
+            
+            while (rs.next()) {
+                int idDireccion = rs.getInt("idDireccion");
                 int numero = rs.getInt("numero");
                 String calle = rs.getString("calle");
                 String comuna = rs.getString("comuna");
                 String ciudad = rs.getString("ciudad");
                 int idCliente = rs.getInt("idCliente");
-                direccionEnvio = new DireccionEnvio(numDireccion,numero,calle,comuna,ciudad,idCliente);
-                direccionEnvios.add(direccionEnvio);
-            }
-        } catch(SQLException ex){
-            ex.printStackTrace(System.out);
-        }
-        finally{
-            Conexion.close(conn);
-            Conexion.close(rs);
-            Conexion.close(stmt);  
-        }
-        return direccionEnvios;
-    }
-    
-    public DireccionEnvio obtenerDireccionPorId(int numDireccion) throws SQLException {
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
-        DireccionEnvio direccionEnvio = null;
-    
-        try {
-            conn = Conexion.getConnection();
-            stmt = conn.prepareStatement(SQL_SELECT_BY_ID);
-            stmt.setInt(1, numDireccion); 
-            rs = stmt.executeQuery();
-    
-            if (rs.next()) {
-                int numero = rs.getInt("numero");
-                String calle = rs.getString("calle");
-                String comuna = rs.getString("comuna");
-                String ciudad = rs.getString("ciudad");
-                int idCliente = rs.getInt("idCliente");
-    
-                direccionEnvio = new DireccionEnvio(numDireccion, numero, calle, comuna, ciudad, idCliente);
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace(System.out);
-        } finally {
-            Conexion.close(rs);
-            Conexion.close(stmt);
-            Conexion.close(conn);
-        }
-        return direccionEnvio; 
-    }
-    
-    public int insertar(DireccionEnvio direccionEnvio){
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        int registros = 0;
-            try{
-                conn = Conexion.getConnection();
-                stmt = conn.prepareStatement(SQL_INSERT);
-                stmt.setInt(1, direccionEnvio.getNumDireccion());
-                stmt.setInt(2, direccionEnvio.getNumero());
-                stmt.setString(3, direccionEnvio.getCalle());
-                stmt.setString(4, direccionEnvio.getComuna());
-                stmt.setString(5, direccionEnvio.getCiudad());
-                stmt.setInt(6, direccionEnvio.getIdCliente());
-                registros = stmt.executeUpdate();
                 
-            }  catch(SQLException ex){
-                ex.printStackTrace(System.out);
+                DireccionEnvio direccionEnvio = new DireccionEnvio(idDireccion, numero, calle, comuna, ciudad, idCliente);
+                direccionesEnvio.add(direccionEnvio);
             }
-        finally{
-            try{
-                close(stmt);
-            }catch(SQLException ex){
-            }
-            try{
-                close(conn);
-            }catch(SQLException ex){
-                ex.printStackTrace(System.out);
-            }
-            }
-            return registros;
+        }
+        return direccionesEnvio;
     }
     
-    public boolean eliminar(int idCliente) throws SQLException {
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        boolean rowDeleted = false;
-
-        try {
-            conn = Conexion.getConnection();
-            stmt = conn.prepareStatement(SQL_DELETE);
-            stmt.setInt(6, idCliente);
-            rowDeleted = stmt.executeUpdate() > 0;
-
-        } catch (SQLException ex) {
-            ex.printStackTrace(System.out);
-        } finally {
-            Conexion.close(stmt);
-            Conexion.close(conn);
+    public DireccionEnvio obtenerDireccionPorId(int idDireccion) throws SQLException {
+        DireccionEnvio direccionEnvio = null;
+        
+        try (Connection conn = Conexion.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_SELECT_BY_ID)) {
+            
+            stmt.setInt(1, idDireccion);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    int numero = rs.getInt("numero");
+                    String calle = rs.getString("calle");
+                    String comuna = rs.getString("comuna");
+                    String ciudad = rs.getString("ciudad");
+                    int idCliente = rs.getInt("idCliente");
+                    
+                    direccionEnvio = new DireccionEnvio(idDireccion, numero, calle, comuna, ciudad, idCliente);
+                }
+            }
         }
-        return rowDeleted;
+        return direccionEnvio;
     }
-
     
-    public boolean actualizar(DireccionEnvio direccionEnvio) throws SQLException {
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        boolean rowUpdated = false;
-        try {
-            conn = Conexion.getConnection();
-            stmt = conn.prepareStatement(SQL_UPDATE);
-            stmt.setInt(1, direccionEnvio.getNumDireccion());
-            stmt.setInt(2, direccionEnvio.getNumero());
-            stmt.setString(3, direccionEnvio.getCalle());
-            stmt.setString(4, direccionEnvio.getComuna());
-            stmt.setString(5, direccionEnvio.getCiudad());
-            stmt.setInt(6, direccionEnvio.getIdCliente());
-            rowUpdated = stmt.executeUpdate() > 0;
-
-        } catch (SQLException ex) {
-            ex.printStackTrace(System.out);
-        } finally {
-            Conexion.close(stmt);
-            Conexion.close(conn);
+    public void insertar(DireccionEnvio direccionEnvio) throws SQLException {
+        try (Connection conn = Conexion.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_INSERT)) {
+            
+            stmt.setInt(1, direccionEnvio.getNumero());
+            stmt.setString(2, direccionEnvio.getCalle());
+            stmt.setString(3, direccionEnvio.getComuna());
+            stmt.setString(4, direccionEnvio.getCiudad());
+            stmt.setInt(5, direccionEnvio.getIdCliente());
+            
+            stmt.executeUpdate();
         }
-        return rowUpdated;
     }
+    
+    public void eliminar(int idDireccion) throws SQLException {
+        try (Connection conn = Conexion.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_DELETE)) {
+            
+            stmt.setInt(1, idDireccion);
+            stmt.executeUpdate();
+        }
+    }
+    
+    public void actualizar(DireccionEnvio direccion) throws SQLException {
+        ClienteDAO clienteDAO = new ClienteDAO();
+        if (!clienteDAO.existeCliente(direccion.getIdCliente())) {
+            throw new SQLException("El ID del cliente no existe.");
+        }
+        
+        try (Connection conn = Conexion.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_UPDATE)) {
+            
+            stmt.setInt(1, direccion.getNumero());
+            stmt.setString(2, direccion.getCalle());
+            stmt.setString(3, direccion.getComuna());
+            stmt.setString(4, direccion.getCiudad());
+            stmt.setInt(5, direccion.getIdCliente());
+            stmt.setInt(6, direccion.getIdDireccion());
+            
+            stmt.executeUpdate();
+        }
+    }
+
+    public boolean existeDireccion(int idDireccion) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM DireccionEnvio WHERE idDireccion = ?";
+        try (Connection conn = Conexion.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idDireccion);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0; 
+                }
+            }
+        }
+        return false; 
+    }
+    
 }
-

@@ -13,16 +13,16 @@ public class Pedido {
     //ATRIBUTOS
     private int idPedido;
     private Timestamp fecha;
-    private int numero;
-    private int numDireccion;
+    private int idArticulo;
+    private int idDireccion;
     private int idCliente;
     
     //CONSTRUCTOR
-    public Pedido(int idPedido, Timestamp fecha, int numero, int numDireccion, int idCliente) {
+    public Pedido(int idPedido, Timestamp fecha, int idArticulo, int idDireccion, int idCliente) {
         this.idPedido = idPedido;
         this.fecha = fecha;
-        this.numero = numero;
-        this.numDireccion = numDireccion;
+        this.idArticulo = idArticulo;
+        this.idDireccion = idDireccion;
         this.idCliente = idCliente;
     }
     
@@ -43,20 +43,20 @@ public class Pedido {
         this.fecha = fecha;
     }
 
-    public int getNumero() {
-        return numero;
+    public int getIdArticulo() {
+        return idArticulo;
     }
 
-    public void setNumero(int numero) {
-        this.numero = numero;
+    public void setIdArticulo(int idArticulo) {
+        this.idArticulo = idArticulo;
     }
 
-    public int getNumDireccion() {
-        return numDireccion;
+    public int getIdDireccion() {
+        return idDireccion;
     }
 
-    public void setNumDireccion(int numDireccion) {
-        this.numDireccion = numDireccion;
+    public void setIdDireccion(int idDireccion) {
+        this.idDireccion = idDireccion;
     }
 
     public int getIdCliente() {
@@ -69,6 +69,6 @@ public class Pedido {
 
     @Override
     public String toString() {
-        return "Pedido{" + "idPedido=" + idPedido + ", fecha=" + fecha + ", numero=" + numero + ", numDireccion=" + numDireccion + ", idCliente=" + idCliente + '}';
+        return "Pedido[" + " ID Pedido: " + idPedido + ", fecha: " + fecha + ", numero: " + idArticulo + ", numDireccion: " + idDireccion + ", idCliente: " + idCliente + " ]";
     }
 }

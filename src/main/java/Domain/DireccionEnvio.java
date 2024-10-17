@@ -10,7 +10,7 @@ package Domain;
  */
 public class DireccionEnvio {
     // ATRIBUTOS
-    private int numDireccion;
+    private int idDireccion;
     private int numero;
     private String calle;
     private String comuna;
@@ -18,8 +18,17 @@ public class DireccionEnvio {
     private int idCliente;
 
     // CONSTRUCTOR
-    public DireccionEnvio(int numDireccion, int numero, String calle, String comuna, String ciudad, int idCliente) {
-        this.numDireccion = numDireccion;
+    public DireccionEnvio(int numero, String calle, String comuna, String ciudad, int idCliente) {
+        this.numero = numero;
+        this.calle = calle;
+        this.comuna = comuna;
+        this.ciudad = ciudad;
+        this.idCliente = idCliente;
+    }
+
+    // CONSTRUCTOR CON ID (base de datos)
+    public DireccionEnvio(int idDireccion, int numero, String calle, String comuna, String ciudad, int idCliente) {
+        this.idDireccion = idDireccion;
         this.numero = numero;
         this.calle = calle;
         this.comuna = comuna;
@@ -28,12 +37,12 @@ public class DireccionEnvio {
     }
 
     // GETTER Y SETTER
-    public int getNumDireccion() {
-        return numDireccion;
+    public int getIdDireccion() {
+        return idDireccion;
     }
 
-    public void setNumDireccion(int numDireccion) {
-        this.numDireccion = numDireccion;
+    public void setIdDireccion(int idDireccion) {
+        this.idDireccion = idDireccion;
     }
 
     public int getNumero() {
@@ -74,5 +83,10 @@ public class DireccionEnvio {
 
     public void setIdCliente(int idCliente) {
         this.idCliente = idCliente;
+    }
+
+    @Override
+    public String toString() {
+        return "DireccionEnvio [" + " ID Direccion: " + idDireccion + ", numero: " + numero + ", calle: " + calle + ", comuna: " + comuna + ", ciudad: " + ciudad + ", idCliente: " + idCliente + " ]";
     }
 }
